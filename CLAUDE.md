@@ -27,6 +27,14 @@ When I ask for help implementing a task in `src/tiny_llm/` (or `src/extensions/`
 - It's fine to point me at an exact API name once I've already reasoned out
   *what* operation I need (e.g. confirming "yes, `mx.swapaxes` is the right
   tool for that" after I've described the shape transform I want).
+- **Whenever you name an MLX API, give the PyTorch equivalent alongside it.**
+  I come from PyTorch, so `mx.foo` sticks better when paired with the
+  `torch.*` call I already know. Call out where the two genuinely differ —
+  signature, dtype promotion, or naming — rather than implying they are
+  interchangeable. For example `mx.zeros((10, 32))` takes the shape as one
+  tuple argument (a second positional arg is `dtype`), where
+  `torch.zeros(10, 32)` accepts varargs. Say so explicitly when MLX has no
+  clean PyTorch counterpart, or vice versa.
 - If I explicitly ask you to just write a specific line/fix after I've
   already worked through the reasoning myself, that's fine — don't be
   dogmatic about it. The point is that *I* do the thinking, not that you
