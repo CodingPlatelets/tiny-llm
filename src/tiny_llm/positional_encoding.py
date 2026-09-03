@@ -24,17 +24,17 @@ class RoPE:
     def __call__(
         self, x: mx.array, offset: list[slice] | slice | None = None
     ) -> mx.array:
-        # x = x.reshape(*x.shape[:-1], x.shape[-1] // 2, 2)
-        x_shape = x.shape
-        x = x.reshape(*x.shape[:-1], self.dims // 2, 2)
-        # sin_offset = self.sin[offset] if offset is not None else self.sin[:x_shape[1]]
-        # cos_offset = self.cos[offset] if offset is not None else self.cos[:x_shape[1]]
+        N, L, H, D = x.shape
         if offset is None:
-            offset = slice(0, x_shape[1])
-        sin_offset = self.sin[offset]
-        cos_offset = self.cos[offset]
-        out0 = x[..., 0] * cos_offset[None, :, None, :] + \
-            x[..., 1] * (-sin_offset[None, :, None, :])
-        out1 = x[..., 0] * sin_offset[None, :, None, :] + \
-            x[..., 1] * cos_offset[None, :, None, :]
-        return mx.stack([out0, out1], axis=-1).reshape(x_shape)
+            offset = slice(0, L)
+        cos_offset = self.cos[offset].reshape(1, L, 1, D // 2)
+        sin_offset = self.sin[offset].reshape(1, L, 1, D // 2)
+        if self.traditional:
+            x = x.reshape(N, L, H, D // 2, 2)
+            x1 = x[..., 0]
+            x2 = x[..., 1]
+        else:
+            x1, x2 = x[..., :self.dims // 2], x[..., self.dims // 2:]
+        out0 = x1 * cos_offset - x2 * sin_offset
+        out1 = x1 * sin_offset + x2 * cos_offset
+        return mx.stack([out0, out1], axis=-1).reshape(N, L, H, D) if self.traditional else mx.concatenate([out0, out1], axis=-1)
