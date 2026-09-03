@@ -70,7 +70,11 @@ class SimpleMultiHeadAttention:
 
 
 def causal_mask(L: int, S: int, dtype: mx.Dtype) -> mx.array:
-    pass
+    row = mx.arange(0, L)
+    col = mx.arange(0, S)
+    # j <= i + S - L
+    return mx.where(col[None, :] <= row[:, None] + S - L,
+                    mx.array(0, dtype=dtype), mx.array(-mx.inf, dtype=dtype))
 
 
 def scaled_dot_product_attention_grouped(
@@ -80,7 +84,27 @@ def scaled_dot_product_attention_grouped(
     scale: float | None = None,
     mask: mx.array | str | None = None,
 ) -> mx.array:
-    pass
+    # Attention = softmax(Q @ K^t / dk ^ 0.5 + M) @ V
+    # GQA
+    batch_shap = query.shape[:-3]
+    Hq, L, D = query.shape[-3], query.shape[-2], query.shape[-1]
+    H, S = key.shape[-3], key.shape[-2]
+    n_repeats = Hq // H
+    query = query.reshape(*query.shape[:-3], H, n_repeats, L, D)
+    key = key.reshape(*key.shape[:-3], H, 1, S, D)
+    value = value.reshape(*value.shape[:-3], H, 1, S, D)
+    real_scale = 1.0 / mx.sqrt(D) if scale is None else scale
+
+    key_t = mx.swapaxes(key, -1, -2)
+    out = mx.matmul(query, key_t)
+    out = out * real_scale
+    if mask == 'causal':
+        out = out + causal_mask(L, S, out.dtype)
+    elif mask is not None:
+        mask = mask.reshape(*mask.shape[:-3], H, n_repeats, L, S)
+        out = out + mask
+    p = softmax(out, -1)
+    return mx.matmul(p, value).reshape(*batch_shap, Hq, L, D)
 
 
 def paged_attention(
