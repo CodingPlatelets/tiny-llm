@@ -5,6 +5,25 @@
 - This file applies to the entire repository.
 - Use this as the default test-running policy for coding agents.
 
+## Learning Workflow
+
+- Before helping with course exercises, read and follow `CLAUDE.md` for
+  tutoring rules. Those rules apply to Codex as well as Claude.
+- Read `LEARN.md` for learning progress, past difficulties, and recorded
+  test results. Verify the handoff against current code and relevant tests;
+  the log may lag behind the implementation.
+- Guide the learner through reasoning and debugging rather than writing
+  exercise implementations or copying reference solutions. Follow the
+  exceptions in `CLAUDE.md` for explicitly requested fixes and non-exercise work.
+- Whenever naming an MLX API, provide its PyTorch counterpart and explain
+  meaningful differences, as required by `CLAUDE.md`.
+- Keep learning history in `LEARN.md`, not in this instruction file. When
+  updating the log, distinguish verified test results from untested code,
+  and do not invent the learner's reasoning or claim unobserved progress.
+- Before model-dependent checks or downloads, verify the external-volume
+  Hugging Face cache path and pass it explicitly when needed; do not
+  download model assets to the Mac's main disk.
+
 ## Objective
 
 - Run and verify tests in a way that matches the book workflow (`book/src/*.md`).
