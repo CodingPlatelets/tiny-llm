@@ -64,10 +64,15 @@ class Qwen3MLP:
         w_up: mx.array,
         w_down: mx.array,
     ):
-        pass
+        self.gate, self.up, self.down = w_gate, w_up, w_down
+        self.D = dim
+        self.H = hidden_dim
 
     def __call__(self, x: mx.array) -> mx.array:
-        pass
+        up = linear(x, self.up)
+        gate = linear(x, self.gate)
+        si = silu(gate) * up
+        return linear(si, self.down)
 
 
 class Qwen3TransformerBlock:
