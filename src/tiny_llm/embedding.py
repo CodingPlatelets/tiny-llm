@@ -1,16 +1,18 @@
 import mlx.core as mx
 from .quantize import QuantizedWeights
 
-
 class Embedding:
     def __init__(self, vocab_size: int, embedding_dim: int, weight: mx.array):
-        pass
+        self.vocab_size = vocab_size
+        self.embedding_dim = embedding_dim
+        self.weight = weight # [vocab, emb_dim]
 
     def __call__(self, x: mx.array) -> mx.array:
-        pass
+        return self.weight[x]
 
     def as_linear(self, x: mx.array) -> mx.array:
-        pass
+        w_t = mx.swapaxes(self.weight, -1, -2)
+        return mx.matmul(x, w_t) 
 
 
 class QuantizedEmbedding:
